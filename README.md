@@ -1,4 +1,4 @@
-# ⚡ Peak Performance
+# ⚡ Pain Driven Man
 
 A 30-day momentum tracker you can add to your phone's home screen — no app store, no account, no server. One page, works offline, all data stays on your device.
 
@@ -19,7 +19,7 @@ Built from the *Peak Performance* brainstorm: reset sleep timing, eat enough, tr
 - **Today's Mission.** Seven tap-to-complete quests (wake near target, morning light, 3+ meals, protein, train/recover, cannabis-free night, wind-down) = up to **105 XP/day**. XP only ever rewards healthy consistency.
 - **Adaptive language.** The tone changes with your day and your trend — celebrating the *process* on strong days, normalizing and offering *one small next action* on rough ones. Cannabis is tracked as neutral data (None / Social / Yes), never judged.
 - **Your character.** Mind · Body · Energy · Execution · Lifestyle bars grow from what you log. It's "what you're building," not a score out of 100.
-- **Daily rhythm + reminders.** A spaced schedule of hydration, meal, and "kitchen closes X hours before bed" nudges built from your wake/bedtime. Two delivery layers: in-app notifications while Peak is open, and a one-tap **`.ics` calendar export** so reminders fire natively even when the app is closed (the reliable path on iPhone — no server needed).
+- **Daily rhythm + reminders.** A spaced schedule of hydration, meal, and "kitchen closes X hours before bed" nudges built from your wake/bedtime. Two delivery layers: in-app notifications while the app is open, and a one-tap **`.ics` calendar export** so reminders fire natively even when the app is closed (the reliable path on iPhone — no server needed).
 - **Weekly review.** Momentum trend, days logged, averages, what's working, and one gentle focus for next week — in the same voice.
 - **Patterns.** After ~5 days it surfaces honest, uncertainty-flagged correlations (e.g. "your energy runs higher on cannabis-free nights").
 - **Baseline.** Your 6 Aug 2026 Technogym scan as a non-judgmental reference point.

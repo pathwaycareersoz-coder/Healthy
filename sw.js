@@ -1,6 +1,6 @@
-// Peak Performance — service worker for offline "add to home screen" use.
+// Pain Driven Man — service worker for offline "add to home screen" use.
 // Bump CACHE when you ship changes so phones pick up the new version.
-const CACHE = "peak-v2";
+const CACHE = "pdm-v3";
 const ASSETS = [
   "./",
   "./index.html",

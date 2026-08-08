@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f1115">
-<title>Peak Performance</title>
+<title>Pain Driven Man</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon-64.png" sizes="64x64" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Peak">
+<meta name="apple-mobile-web-app-title" content="Pain Driven">
 <style>
 :root{
   --bg:#0f1115; --bg2:#141821; --card:#191c22; --card2:#20242e; --line:#2b3039;
@@ -180,7 +180,7 @@ details[open] summary .caret{transform:rotate(180deg)}
 
 <div class="topbar">
   <div class="wrap row">
-    <div class="brand"><span class="bolt">⚡</span><div>Peak Performance<small id="dayline">Day 1 of 30</small></div></div>
+    <div class="brand"><span class="bolt">⚡</span><div>Pain Driven Man<small id="dayline">Day 1 of 30</small></div></div>
     <button class="iconbtn" onclick="openSheet()" aria-label="Settings">⚙︎</button>
   </div>
 </div>
@@ -254,7 +254,7 @@ details[open] summary .caret{transform:rotate(180deg)}
       <button class="btn ghost" id="remindBtn" onclick="toggleReminders()">🔔 Turn on in-app reminders</button>
       <button class="btn ghost" onclick="downloadICS()">📅 Add to phone calendar</button>
     </div>
-    <div class="small dim" style="margin-top:8px">Calendar reminders fire even when the app is closed — the reliable option on iPhone. In-app reminders only fire while Peak is open.</div>
+    <div class="small dim" style="margin-top:8px" id="reminderNote">Calendar reminders fire even when the app is closed — the reliable option on iPhone. In-app reminders only fire while the app is open.</div>
   </div>
 
   <!-- FEEL / METRICS -->
@@ -772,8 +772,8 @@ function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:"
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();
   r.onload=()=>{try{const s=JSON.parse(r.result);if(!s.days)throw 0;state=s;persist();render();closeSheet();toast("Imported");}catch(_){toast("That file didn’t look right");}};r.readAsText(f);}
 function shareApp(){const url=location.href.split("?")[0];
-  const txt="Peak Performance — a 30-day momentum tracker. Add it to your home screen: "+url;
-  if(navigator.share){navigator.share({title:"Peak Performance",text:"Join me on a 30-day reset",url}).catch(()=>{});}
+  const txt="Pain Driven Man — a 30-day momentum tracker. Add it to your home screen: "+url;
+  if(navigator.share){navigator.share({title:"Pain Driven Man",text:"Join me on a 30-day reset",url}).catch(()=>{});}
   else{navigator.clipboard?.writeText(txt);toast("Link copied to share");}}
 function resetData(){if(confirm("Reset everything on this device? This can’t be undone.")){localStorage.removeItem(KEY);state=load();render();closeSheet();toast("Reset");}}
 
@@ -832,7 +832,7 @@ function renderRhythm(){
 function addWater(n){const d=today();d.water=Math.max(0,(d.water||0)+n);haptic();commit();}
 function setLastMeal(v){today().lastMeal=v;commit();}
 
-/* in-app notifications (fire only while Peak is open — honest limitation) */
+/* in-app notifications (fire only while the app is open — honest limitation) */
 let inAppTimers=[];
 function scheduleInApp(){
   inAppTimers.forEach(clearTimeout);inAppTimers=[];
@@ -841,7 +841,7 @@ function scheduleInApp(){
   R.evts.filter(e=>e.m>nowRef&&e.type!=="bed").forEach(e=>{
     const ms=(e.m-nowRef)*60000;
     if(ms>1000&&ms<16*3600*1000){
-      inAppTimers.push(setTimeout(()=>{try{new Notification("Peak · "+e.t,{body:e.w,icon:"icons/icon-192.png",badge:"icons/favicon-64.png",tag:"peak-"+e.type+"-"+e.m});}catch(_){}},ms));
+      inAppTimers.push(setTimeout(()=>{try{new Notification("Pain Driven Man · "+e.t,{body:e.w,icon:"icons/icon-192.png",badge:"icons/favicon-64.png",tag:"pdm-"+e.type+"-"+e.m});}catch(_){}},ms));
     }
   });
 }
@@ -849,7 +849,7 @@ function toggleReminders(){
   if(!("Notification" in window)){toast("This browser can’t show notifications — use Add to calendar");return;}
   if(state.remindersOn){state.remindersOn=false;persist();scheduleInApp();render();toast("In-app reminders off");return;}
   Notification.requestPermission().then(p=>{
-    if(p==="granted"){state.remindersOn=true;persist();scheduleInApp();render();toast("Reminders on — while Peak is open");}
+    if(p==="granted"){state.remindersOn=true;persist();scheduleInApp();render();toast("Reminders on — while the app is open");}
     else toast("Notifications blocked — use Add to calendar instead");
   });
 }
@@ -862,12 +862,12 @@ function icsEsc(s){return String(s).replace(/([,;\\])/g,"\\$1").replace(/\n/g,"\
 function downloadICS(){
   const R=rhythm(),base=todayISO(),now=new Date();
   const stamp=now.getUTCFullYear()+pad2(now.getUTCMonth()+1)+pad2(now.getUTCDate())+"T"+pad2(now.getUTCHours())+pad2(now.getUTCMinutes())+pad2(now.getUTCSeconds())+"Z";
-  const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Peak Performance//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Peak reminders"];
+  const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Pain Driven Man//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Pain Driven Man reminders"];
   let i=0;
   for(const e of R.evts){if(e.type==="bed")continue;i++;
     L.push("BEGIN:VEVENT","UID:peak-"+e.type+"-"+i+"-"+base+"@peak.local","DTSTAMP:"+stamp,
       "DTSTART:"+icsDT(base,e.m),"DURATION:PT10M","RRULE:FREQ=DAILY",
-      "SUMMARY:"+icsEsc(e.em+" "+e.t),"DESCRIPTION:"+icsEsc(e.w+" · Peak Performance"),
+      "SUMMARY:"+icsEsc(e.em+" "+e.t),"DESCRIPTION:"+icsEsc(e.w+" · Pain Driven Man"),
       "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(e.t),"TRIGGER:PT0M","END:VALARM","END:VEVENT");
   }
   L.push("END:VCALENDAR");

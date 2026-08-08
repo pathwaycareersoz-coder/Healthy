@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<title>Peak Performance</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-64.png" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Peak">
+<style>
+:root{
+  --bg:#0f1115; --bg2:#141821; --card:#191c22; --card2:#20242e; --line:#2b3039;
+  --ink:#f5f7fa; --muted:#9da4ae; --dim:#6b7280;
+  --accent:#7dd3fc; --accent2:#8b5cf6; --good:#34d399; --warn:#fbbf24; --soft:#f472b6;
+  --ring:#69b7ff;
+  --pad: max(16px, env(safe-area-inset-left));
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  background:
+    radial-gradient(1100px 500px at 50% -8%, #1c2033 0%, rgba(28,32,51,0) 60%),
+    var(--bg);
+  color:var(--ink); -webkit-font-smoothing:antialiased;
+  padding-bottom:calc(40px + env(safe-area-inset-bottom));
+}
+.wrap{max-width:620px;margin:0 auto;padding:0 var(--pad)}
+.topbar{
+  position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);
+  background:linear-gradient(180deg, rgba(15,17,21,.92), rgba(15,17,21,.62));
+  border-bottom:1px solid var(--line);
+  padding-top:calc(10px + env(safe-area-inset-top));
+}
+.topbar .row{display:flex;align-items:center;justify-content:space-between;padding:8px 0 12px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:.2px}
+.brand .bolt{font-size:20px}
+.brand small{display:block;font-weight:600;color:var(--muted);font-size:11px;letter-spacing:.3px}
+.iconbtn{background:var(--card);border:1px solid var(--line);color:var(--ink);width:38px;height:38px;border-radius:12px;font-size:17px;display:grid;place-items:center;cursor:pointer}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 1px 0 rgba(255,255,255,.02) inset}
+h1{font-size:24px;margin:0}
+h2{font-size:16px;margin:0 0 12px;letter-spacing:.2px}
+.muted{color:var(--muted)}.dim{color:var(--dim)}
+.small{font-size:13px}
+
+/* momentum hero */
+.hero{display:flex;gap:18px;align-items:center}
+.ring{flex:0 0 128px;width:128px;height:128px;position:relative}
+.ring svg{transform:rotate(-90deg)}
+.ring .val{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .val b{font-size:34px;line-height:1;display:block;font-variant-numeric:tabular-nums}
+.ring .val span{font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+.delta{font-size:12px;font-weight:700;margin-top:3px}
+.up{color:var(--good)} .down{color:var(--soft)} .flat{color:var(--muted)}
+.hero .msg{flex:1;min-width:0}
+.hero .msg .k{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.hero .msg p{margin:6px 0 0;font-size:15.5px;line-height:1.45}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{border:1px solid var(--line);background:var(--card2);color:var(--ink);border-radius:999px;padding:8px 12px;font-size:13px;cursor:pointer;transition:transform .12s,border-color .12s}
+.chip:active{transform:scale(.96)}
+.chip.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+
+/* stat strip */
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.strip .s{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:11px 10px;text-align:center}
+.strip .s b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.strip .s span{font-size:10.5px;color:var(--muted);letter-spacing:.4px}
+
+/* mission */
+.grp{margin:14px 0 6px;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+.q{display:flex;align-items:center;gap:13px;padding:13px 12px;border:1px solid var(--line);border-radius:15px;margin:9px 0;background:var(--card2);cursor:pointer;transition:border-color .15s, background .15s, transform .1s;user-select:none}
+.q:active{transform:scale(.99)}
+.q.done{border-color:rgba(52,211,153,.5);background:linear-gradient(180deg, rgba(52,211,153,.10), rgba(52,211,153,.03))}
+.q .tick{flex:0 0 26px;width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:14px;color:transparent;transition:.15s}
+.q.done .tick{background:var(--good);border-color:var(--good);color:#06231a}
+.q .body{flex:1;min-width:0}
+.q .body .t{font-size:15px;font-weight:600}
+.q .body .h{font-size:12px;color:var(--muted);margin-top:2px}
+.q .xp{font-size:12px;font-weight:800;color:var(--muted);flex:0 0 auto}
+.q.done .xp{color:var(--good)}
+.q .mini{margin-top:9px;display:flex;gap:8px;flex-wrap:wrap}
+.q .mini input, .q .mini select{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:8px 10px;font-size:14px}
+.step{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.step button{background:var(--bg);border:0;color:var(--ink);width:34px;height:34px;font-size:18px;cursor:pointer}
+.step b{min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{background:var(--bg);border:0;color:var(--muted);padding:8px 12px;font-size:13px;cursor:pointer}
+.seg button.on{background:var(--accent);color:#06202b;font-weight:700}
+.seg.warm button.on{background:var(--soft);color:#2b0d1e}
+
+/* rhythm */
+#upnext .un{display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,rgba(125,211,252,.10),rgba(139,92,246,.05));border:1px solid rgba(125,211,252,.35);border-radius:15px;padding:13px 14px;margin-bottom:12px}
+#upnext .un .em{font-size:24px}
+#upnext .un .t{font-weight:700;font-size:15px}
+#upnext .un .w{font-size:12.5px;color:var(--muted);margin-top:2px}
+.water{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--card2);border:1px solid var(--line);border-radius:15px;padding:12px 14px;margin:4px 0 12px}
+.water b{font-size:22px;font-variant-numeric:tabular-nums}
+.wbar{height:8px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--line);margin-top:6px;width:150px;max-width:42vw}
+.wbar i{display:block;height:100%;background:linear-gradient(90deg,#38bdf8,#7dd3fc);width:0;transition:width .4s}
+.tl{border-left:2px solid var(--line);margin:2px 0 2px 8px;padding-left:0}
+.tl .ev{display:flex;align-items:center;gap:10px;padding:7px 0 7px 14px;position:relative;font-size:13.5px}
+.tl .ev::before{content:"";position:absolute;left:-5px;top:14px;width:8px;height:8px;border-radius:50%;background:var(--line)}
+.tl .ev.past::before{background:var(--dim)}
+.tl .ev.next::before{background:var(--accent);box-shadow:0 0 0 3px rgba(125,211,252,.25)}
+.tl .ev .tm{color:var(--muted);font-variant-numeric:tabular-nums;flex:0 0 58px}
+.tl .ev.past{opacity:.55}
+
+/* weekly review */
+.wk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.wk .c{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 8px;text-align:center}
+.wk .c b{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+.wk .c span{font-size:10.5px;color:var(--muted)}
+.wk .focus{background:linear-gradient(180deg,rgba(139,92,246,.12),rgba(139,92,246,.04));border:1px solid rgba(139,92,246,.35);border-radius:13px;padding:12px 14px;font-size:14px;line-height:1.45}
+
+/* generic controls */
+.field{margin:10px 0}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.form label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+input[type=time],input[type=number],input[type=text],input[type=date]{
+  width:100%;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:12px;font-size:15px
+}
+.range{width:100%}
+.btn{border:0;border-radius:13px;padding:13px 15px;background:var(--ink);color:#0d0f13;font-weight:800;cursor:pointer;font-size:14px}
+.btn.ghost{background:var(--card2);color:var(--ink);border:1px solid var(--line)}
+.btn.block{display:block;width:100%}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+
+/* attributes */
+.attr{display:flex;align-items:center;gap:12px;margin:12px 0}
+.attr .em{font-size:20px;flex:0 0 26px;text-align:center}
+.attr .n{flex:0 0 92px;font-size:14px}
+.attr .bar{flex:1;height:10px;background:var(--bg);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.attr .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.attr .lv{flex:0 0 auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* insights */
+.ins{border-left:3px solid var(--accent);background:var(--card2);border-radius:0 12px 12px 0;padding:11px 13px;margin:10px 0;font-size:14px;line-height:1.45}
+.ins .s{display:block;font-size:11.5px;color:var(--dim);margin-top:5px}
+
+/* history + badges */
+.badge{display:inline-block;padding:6px 11px;background:var(--card2);border:1px solid var(--line);border-radius:999px;margin:4px 4px 0 0;font-size:12.5px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:12.5px}
+th{color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto}
+
+.baseline{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.baseline .b{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.baseline .b b{display:block;font-size:16px}
+.baseline .b span{font-size:10.5px;color:var(--muted)}
+
+details summary{cursor:pointer;list-style:none;font-weight:700;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+details summary::-webkit-details-marker{display:none}
+details[open] summary .caret{transform:rotate(180deg)}
+.caret{transition:.2s;color:var(--muted)}
+
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+  background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-size:13.5px;
+  opacity:0;pointer-events:none;transition:.25s;z-index:60;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.sheet{position:fixed;inset:0;z-index:50;display:none}
+.sheet.open{display:block}
+.sheet .scrim{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.sheet .panel{position:absolute;left:0;right:0;bottom:0;background:var(--bg2);border-top:1px solid var(--line);
+  border-radius:22px 22px 0 0;padding:18px var(--pad) calc(24px + env(safe-area-inset-bottom));max-height:86vh;overflow:auto}
+.sheet .panel h2{margin-bottom:4px}
+.footer{color:var(--dim);font-size:12px;text-align:center;margin:22px 0 6px;line-height:1.6}
+
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap row">
+    <div class="brand"><span class="bolt">⚡</span><div>Peak Performance<small id="dayline">Day 1 of 30</small></div></div>
+    <button class="iconbtn" onclick="openSheet()" aria-label="Settings">⚙︎</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- MOMENTUM HERO -->
+  <div class="card">
+    <div class="hero">
+      <div class="ring">
+        <svg width="128" height="128" viewBox="0 0 128 128">
+          <defs>
+            <linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+          <circle cx="64" cy="64" r="56" stroke="#242a35" stroke-width="12" fill="none"/>
+          <circle id="ringfill" cx="64" cy="64" r="56" stroke="url(#rg)" stroke-width="12" fill="none"
+                  stroke-linecap="round" stroke-dasharray="351.86" stroke-dashoffset="351.86"/>
+        </svg>
+        <div class="val"><div><b id="momentum">100</b><span>Momentum</span><div class="delta flat" id="mdelta">—</div></div></div>
+      </div>
+      <div class="msg">
+        <div class="k">Today</div>
+        <p id="message">Welcome. One mission: make the next good decision easier.</p>
+        <div id="pick" class="chips" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAT STRIP -->
+  <div class="card">
+    <div class="strip">
+      <div class="s"><b id="todayXp">0</b><span>XP TODAY</span></div>
+      <div class="s"><b id="level">1</b><span>LEVEL</span></div>
+      <div class="s"><b id="streak">0</b><span>DAY STREAK</span></div>
+      <div class="s"><b id="target">08:00</b><span>WAKE TARGET</span></div>
+    </div>
+  </div>
+
+  <!-- TODAY'S MISSION -->
+  <div class="card">
+    <h2>🎯 Today’s mission</h2>
+    <div class="dim small" style="margin-top:-6px;margin-bottom:6px">Tap what you did. You don’t have to win everything — just win today.</div>
+    <div id="mission"></div>
+    <div class="small dim" style="margin-top:10px">XP rewards consistency — never sleeping less, under-eating, or overtraining.</div>
+  </div>
+
+  <!-- DAILY RHYTHM -->
+  <div class="card">
+    <h2>💧 Today’s rhythm</h2>
+    <div class="dim small" style="margin-top:-6px;margin-bottom:12px">Spaced nudges to eat, hydrate, and close the kitchen before bed.</div>
+    <div id="upnext"></div>
+    <div class="water">
+      <div>
+        <div class="small muted">Water</div>
+        <b id="waterCount">0</b><span class="muted"> / <span id="waterGoal">8</span> glasses</span>
+        <div class="wbar"><i id="wfill"></i></div>
+      </div>
+      <div class="btnrow">
+        <button class="btn ghost" onclick="addWater(-1)">–</button>
+        <button class="btn" onclick="addWater(1)">＋ Glass</button>
+      </div>
+    </div>
+    <div id="timeline" class="tl"></div>
+    <div class="field" style="margin-top:14px">
+      <label>Last big meal today <span class="dim" id="kitchenHint"></span></label>
+      <input type="time" id="lastMeal" onchange="setLastMeal(this.value)">
+    </div>
+    <div class="btnrow" style="margin-top:6px">
+      <button class="btn ghost" id="remindBtn" onclick="toggleReminders()">🔔 Turn on in-app reminders</button>
+      <button class="btn ghost" onclick="downloadICS()">📅 Add to phone calendar</button>
+    </div>
+    <div class="small dim" style="margin-top:8px">Calendar reminders fire even when the app is closed — the reliable option on iPhone. In-app reminders only fire while Peak is open.</div>
+  </div>
+
+  <!-- FEEL / METRICS -->
+  <div class="card">
+    <h2>📋 How did it feel?</h2>
+    <div class="field">
+      <label>Morning energy · <b id="energyVal">–</b>/10</label>
+      <input class="range" id="energy" type="range" min="0" max="10" step="1" value="0" oninput="onFeel()">
+    </div>
+    <div class="field">
+      <label>Sleep quality · <b id="sleepVal">–</b>/10</label>
+      <input class="range" id="sleepq" type="range" min="0" max="10" step="1" value="0" oninput="onFeel()">
+    </div>
+    <div class="field">
+      <label>One line for today (optional)</label>
+      <input type="text" id="note" placeholder="What shaped today?" oninput="onFeel()">
+    </div>
+  </div>
+
+  <!-- CHARACTER -->
+  <div class="card">
+    <h2>🧬 Your character</h2>
+    <div class="dim small" style="margin-top:-6px;margin-bottom:10px">Not a score out of 100 — a picture of what you’re building.</div>
+    <div id="attrs"></div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="card" id="insCard">
+    <h2>🔎 Patterns</h2>
+    <div id="insights"></div>
+  </div>
+
+  <!-- WEEKLY REVIEW -->
+  <div class="card" id="weekCard">
+    <h2>🗓️ This week</h2>
+    <div id="week"></div>
+  </div>
+
+  <!-- BADGES -->
+  <div class="card">
+    <h2>🏅 Milestones</h2>
+    <div id="badges"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="card">
+    <details>
+      <summary>📈 History <span class="caret">▾</span></summary>
+      <div class="scroll" style="margin-top:12px">
+        <table>
+          <thead><tr><th>Day</th><th>Wake</th><th>Energy</th><th>Sleep</th><th>Meals</th><th>Cann.</th><th>XP</th></tr></thead>
+          <tbody id="history"></tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+
+  <!-- BASELINE -->
+  <div class="card">
+    <details>
+      <summary>🧪 Baseline scan <span class="caret">▾</span></summary>
+      <div style="margin-top:12px" id="baselineBox"></div>
+    </details>
+  </div>
+
+  <div class="footer">
+    Everything stays on this device (local storage). Nothing is uploaded.<br>
+    Add to Home Screen for a full-screen, offline app.
+  </div>
+
+</div>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet" id="sheet">
+  <div class="scrim" onclick="closeSheet()"></div>
+  <div class="panel">
+    <h2>Settings</h2>
+    <div class="dim small" style="margin-bottom:14px">Your data lives only on this device.</div>
+    <div class="field"><label>Your name (optional)</label><input type="text" id="setName" placeholder="First name"></div>
+    <div class="field"><label>Challenge start date (Day 1)</label><input type="date" id="setStart"></div>
+    <div class="field">
+      <label>Protein daily target</label>
+      <input type="text" id="setProtein" placeholder="100–130 g">
+    </div>
+    <div class="field">
+      <label>Target bedtime</label>
+      <input type="time" id="setBed">
+    </div>
+    <div class="field">
+      <label>Water target (glasses/day)</label>
+      <input type="number" id="setWater" min="1" max="20" step="1">
+    </div>
+    <div class="field">
+      <label>Stop eating this many hours before bed</label>
+      <input type="number" id="setCutoff" min="0" max="6" step="0.5">
+    </div>
+    <details style="margin-top:6px">
+      <summary>🧪 Baseline scan <span class="dim" style="font-weight:400">(private, stays on this device)</span></summary>
+      <div style="margin-top:10px">
+        <div class="form">
+          <div><label>Weight (kg)</label><input type="text" id="setBw" placeholder="kg"></div>
+          <div><label>Muscle SMM (kg)</label><input type="text" id="setBm" placeholder="kg"></div>
+          <div><label>Body fat (%)</label><input type="text" id="setBf" placeholder="%"></div>
+          <div><label>BMR (kcal)</label><input type="text" id="setBbmr" placeholder="kcal"></div>
+          <div><label>Phase angle (°)</label><input type="text" id="setBphase" placeholder="°"></div>
+          <div><label>Device score</label><input type="text" id="setBscore" placeholder="/100"></div>
+          <div><label>Scan date</label><input type="text" id="setBdate" placeholder="date"></div>
+        </div>
+      </div>
+    </details>
+    <h2 style="margin-top:18px">Add to your phone</h2>
+    <p class="small muted" style="margin-top:-4px">
+      <b>iPhone (Safari):</b> Share → <b>Add to Home Screen</b>.<br>
+      <b>Android (Chrome):</b> ⋮ menu → <b>Install app / Add to Home screen</b>.
+    </p>
+    <h2 style="margin-top:18px">Your data</h2>
+    <div class="btnrow">
+      <button class="btn ghost" onclick="exportData()">Export JSON</button>
+      <button class="btn ghost" onclick="document.getElementById('imp').click()">Import JSON</button>
+      <input id="imp" type="file" accept="application/json" style="display:none" onchange="importData(event)">
+    </div>
+    <div class="btnrow" style="margin-top:10px">
+      <button class="btn ghost" onclick="shareApp()">Share with a friend</button>
+      <button class="btn ghost" style="color:var(--soft)" onclick="resetData()">Reset everything</button>
+    </div>
+    <div class="btnrow" style="margin-top:16px"><button class="btn block" onclick="saveSettings()">Done</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- model ---------------- */
+const KEY="peakPerformanceV2";
+const MAX_XP=105;
+const WAKE_TARGETS=["08:00","07:45","07:30","07:15","07:00","06:45","06:30","06:30","06:15","06:15","06:00"];
+const QUESTS=[
+  {key:"wake",   grp:"Morning", icon:"☀️", label:"Woke near target or naturally", xp:20, hint:"Earlier & feeling good beats forcing an alarm"},
+  {key:"light",  grp:"Morning", icon:"🌅", label:"Outdoor light soon after waking", xp:15, hint:"Your strongest circadian anchor"},
+  {key:"meals",  grp:"Body",    icon:"🍽️", label:"3+ real meals",                  xp:20, hint:"Under-eating is not progress"},
+  {key:"protein",grp:"Body",    icon:"🥩", label:"Hit protein target",             xp:15, hint:"~100–130 g across the day"},
+  {key:"train",  grp:"Body",    icon:"🏋️", label:"Trained or active recovery",     xp:15, hint:"Recovery counts as a win too"},
+  {key:"cannabis",grp:"Night",  icon:"🌙", label:"Cannabis-free night",            xp:10, hint:"Measuring the relationship, not judging it"},
+  {key:"wind",   grp:"Night",   icon:"🛁", label:"Evening wind-down",              xp:10, hint:"Same calm sequence most nights"},
+];
+const ATTRS=[
+  {key:"mind",  em:"🧠", name:"Mind"},
+  {key:"body",  em:"💪", name:"Body"},
+  {key:"energy",em:"⚡", name:"Energy"},
+  {key:"exec",  em:"🎯", name:"Execution"},
+  {key:"life",  em:"🌱", name:"Lifestyle"},
+];
+
+const todayISO=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+function blankDay(){return{tasks:{wake:{time:"",natural:false},light:false,meals:0,protein:false,train:false,cannabis:"",wind:false},water:0,lastMeal:"",energy:0,sleepq:0,note:""};}
+
+let state=load();
+function load(){
+  let s=null; try{s=JSON.parse(localStorage.getItem(KEY));}catch(e){}
+  if(!s||!s.days){s={version:3,start:todayISO(),name:"",protein:"100–130 g",days:{}};}
+  // defaults + forward migration for existing saves
+  if(s.bedtime==null)s.bedtime="23:00";
+  if(s.waterTarget==null)s.waterTarget=8;
+  if(s.eatCutoffHrs==null)s.eatCutoffHrs=3;
+  if(s.remindersOn==null)s.remindersOn=false;
+  if(!s.baseline)s.baseline={weight:"",muscle:"",fat:"",bmr:"",phase:"",score:"",date:""};
+  for(const iso in s.days){const d=s.days[iso];if(d.water==null)d.water=0;if(d.lastMeal==null)d.lastMeal="";}
+  return s;
+}
+function persist(){localStorage.setItem(KEY,JSON.stringify(state));}
+function day(iso){if(!state.days[iso])state.days[iso]=blankDay();return state.days[iso];}
+function today(){return day(todayISO());}
+
+/* ---------------- day math ---------------- */
+function dayNumber(iso){
+  const a=new Date(state.start+"T00:00:00"), b=new Date(iso+"T00:00:00");
+  return Math.floor((b-a)/86400000)+1;
+}
+function wakeTarget(n){return WAKE_TARGETS[Math.min(Math.max(n,1)-1,WAKE_TARGETS.length-1)]||"06:00";}
+function toMin(t){if(!t)return null;const[h,m]=t.split(":").map(Number);return h*60+m;}
+
+function wakeDone(d,n){
+  const w=d.tasks.wake||{};
+  if(w.natural)return true;
+  const wm=toMin(w.time), tm=toMin(wakeTarget(n));
+  return wm!=null && tm!=null && wm<=tm+20;
+}
+function xpFor(d,n){
+  let x=0;const t=d.tasks;
+  if(wakeDone(d,n))x+=20;
+  if(t.light)x+=15;
+  if(Number(t.meals)>=3)x+=20;
+  if(t.protein)x+=15;
+  if(t.train)x+=15;
+  if(t.cannabis==="no")x+=10;
+  if(t.wind)x+=10;
+  return x;
+}
+function scoreFor(d,n){return xpFor(d,n)/MAX_XP;}
+
+/* logged days (any interaction) in date order */
+function loggedDates(){
+  return Object.keys(state.days)
+    .filter(iso=>touched(state.days[iso]))
+    .sort();
+}
+function touched(d){
+  const t=d.tasks;
+  return !!(t.wake.time||t.wake.natural||t.light||Number(t.meals)>0||t.protein||t.train||t.cannabis||t.wind||d.energy||d.sleepq||d.note);
+}
+
+/* momentum: starts 100, each logged day nudges it, floored so a bad day never guts you */
+function momentumSeries(){
+  let m=100;const out={};const dates=loggedDates();
+  for(const iso of dates){
+    const n=dayNumber(iso), s=scoreFor(state.days[iso],n);
+    const change=Math.round((s-0.45)*22);
+    const prev=m;
+    m=Math.max(50,Math.min(160,m+change));
+    out[iso]={before:prev,after:m,change:m-prev,score:s};
+  }
+  return out;
+}
+function streak(){
+  // consecutive calendar days (ending today or yesterday) with a positive day
+  const set=new Set(loggedDates().filter(iso=>xpFor(state.days[iso],dayNumber(iso))>0));
+  let c=0;const d=new Date(todayISO()+"T00:00:00");
+  // allow the streak to still be "alive" if today isn't logged yet
+  if(!set.has(todayISO()))d.setDate(d.getDate()-1);
+  while(true){
+    const iso=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    if(set.has(iso)){c++;d.setDate(d.getDate()-1);}else break;
+  }
+  return c;
+}
+
+/* ---------------- compassionate language ---------------- */
+function messageFor(){
+  const iso=todayISO(), n=dayNumber(iso), d=today();
+  const done=QUESTS.filter(q=>questDone(d,q,n)).length;
+  const s=scoreFor(d,n);
+  const series=momentumSeries();
+  const dates=loggedDates();
+  const prevIso=dates.filter(x=>x<iso).pop();
+  const prevScore=prevIso?scoreFor(state.days[prevIso],dayNumber(prevIso)):null;
+  const name=state.name?(", "+state.name):"";
+
+  // recovery after a dip is the moment we most want to reinforce
+  if(prevScore!=null && prevScore<0.45 && s>=0.6){
+    return {tone:"up", showPick:false, text:`You recovered${name}. Yesterday dipped and today you came back — that’s the skill that actually changes things, not never having a bad day.`};
+  }
+  if(!touched(d)){
+    return {tone:"flat", showPick:false, text:`A fresh day${name}. You don’t have to solve everything — wake, light, food, movement, one real task, wind-down. Tap the first thing you’ve already done.`};
+  }
+  if(s>=0.85) return {tone:"up", showPick:false, text:`Complete day${name}. This is exactly the process — not intensity, just showing up. Momentum compounds from days like this.`};
+  if(s>=0.6)  return {tone:"up", showPick:false, text:`Strong day${name}. ${done}/7 done. You’re stacking good decisions — keep it boringly consistent.`};
+  if(s>=0.35) return {tone:"flat", showPick:true, text:`Partway there${name} — ${done}/7. That already counts. Momentum only needs the next small win, not a perfect day.`};
+  // rough day — never shame, make restarting cheap, offer one action
+  return {tone:"down", showPick:true, text:`Rough one${name} — and that’s allowed. A bad day is data, not failure. Your streak philosophy here is simple: you can always recover. Pick one thing below; that’s enough to turn today.`};
+}
+const PICKS=["10-min walk","Get outside","Prep some food","Start wind-down","Close the apps","Drink water"];
+
+/* ---------------- character attributes ---------------- */
+function avg(a){return a.length?a.reduce((x,y)=>x+y,0)/a.length:0;}
+function attrScores(){
+  const dates=loggedDates().slice(-14);
+  const rows=dates.map(iso=>({d:state.days[iso],n:dayNumber(iso)}));
+  const body=avg(rows.map(r=>avg([r.d.tasks.meals>=3?1:0, r.d.tasks.protein?1:0, r.d.tasks.train?1:0])));
+  const energy=avg(rows.map(r=>avg([wakeDone(r.d,r.n)?1:0, r.d.tasks.light?1:0, (r.d.energy||0)/10])));
+  const mind=avg(rows.map(r=>avg([(r.d.sleepq||0)/10, r.d.tasks.wind?1:0, (r.d.energy||0)/10])));
+  const exec=avg(rows.map(r=>scoreFor(r.d,r.n)));
+  const life=avg(rows.map(r=>avg([r.d.tasks.light?1:0, r.d.tasks.cannabis!=="yes"?1:0, r.d.tasks.meals>=2?1:0])));
+  return {mind,body,energy,exec,life};
+}
+
+/* ---------------- insights ---------------- */
+function insights(){
+  const dates=loggedDates();
+  if(dates.length<5) return [];
+  const rows=dates.map(iso=>({d:state.days[iso],n:dayNumber(iso)})).filter(r=>r.d.energy>0);
+  const out=[];
+  const cmp=(pred,label,metric)=>{
+    const A=rows.filter(pred), B=rows.filter(r=>!pred(r));
+    if(A.length<2||B.length<2)return null;
+    const va=avg(A.map(metric)), vb=avg(B.map(metric));
+    return {diff:va-vb, va, vb, na:A.length, nb:B.length, label};
+  };
+  const en=r=>r.d.energy;
+  const candidates=[
+    cmp(r=>r.d.tasks.cannabis==="no", "cannabis-free nights", en),
+    cmp(r=>r.d.tasks.light, "mornings with outdoor light", en),
+    cmp(r=>r.d.tasks.meals>=3, "days with 3+ meals", en),
+    cmp(r=>wakeDone(r.d,r.n), "days you woke near target", en),
+  ].filter(Boolean).filter(c=>Math.abs(c.diff)>=0.6);
+  candidates.sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff));
+  for(const c of candidates.slice(0,3)){
+    const dir=c.diff>0?"higher":"lower";
+    out.push({
+      text:`Early signal: your morning energy runs about <b>${Math.abs(c.diff).toFixed(1)} pts ${dir}</b> on ${c.label}.`,
+      sub:`${c.na} vs ${c.nb} days so far · this is a correlation, not proof — keep logging to see if it holds.`
+    });
+  }
+  // sleep quality vs wind-down
+  const sq=cmp(r=>r.d.tasks.wind, "nights you wound down", r=>r.d.sleepq);
+  if(sq && Math.abs(sq.diff)>=0.6 && rows.filter(r=>r.d.sleepq>0).length>=5){
+    out.push({text:`Your sleep quality averages about <b>${Math.abs(sq.diff).toFixed(1)} pts ${sq.diff>0?"higher":"lower"}</b> on ${sq.label}.`,
+      sub:`${sq.na} vs ${sq.nb} nights · still early.`});
+  }
+  return out;
+}
+
+/* ---------------- rendering ---------------- */
+function questDone(d,q,n){
+  const t=d.tasks;
+  if(q.key==="wake")return wakeDone(d,n);
+  if(q.key==="meals")return Number(t.meals)>=3;
+  if(q.key==="cannabis")return t.cannabis==="no";
+  return !!t[q.key];
+}
+function el(id){return document.getElementById(id);}
+
+function renderMission(){
+  const iso=todayISO(), n=dayNumber(iso), d=today();
+  const groups=["Morning","Body","Night"];
+  let html="";
+  for(const g of groups){
+    html+=`<div class="grp">${g==="Morning"?"☀️ Morning":g==="Body"?"💪 Body":"🌙 Night"}</div>`;
+    for(const q of QUESTS.filter(x=>x.grp===g)){
+      const done=questDone(d,q,n);
+      html+=`<div class="q ${done?"done":""}" onclick="tapQuest('${q.key}',event)">
+        <div class="tick">✓</div>
+        <div class="body"><div class="t">${q.label}</div><div class="h">${q.hint}</div>${miniFor(q,d,n)}</div>
+        <div class="xp">+${q.xp}</div>
+      </div>`;
+    }
+  }
+  el("mission").innerHTML=html;
+}
+function miniFor(q,d,n){
+  const t=d.tasks;
+  if(q.key==="wake"){
+    return `<div class="mini" onclick="event.stopPropagation()">
+      <input type="time" value="${t.wake.time||""}" onchange="setWake('time',this.value)">
+      <button class="chip ${t.wake.natural?"sel":""}" onclick="toggleNatural()">Woke naturally 🌤️</button>
+      <span class="small dim" style="align-self:center">target ${wakeTarget(n)}</span></div>`;
+  }
+  if(q.key==="meals"){
+    return `<div class="mini" onclick="event.stopPropagation()"><div class="step">
+      <button onclick="bumpMeals(-1)">–</button><b>${Number(t.meals)||0}</b><button onclick="bumpMeals(1)">+</button>
+    </div><span class="small dim" style="align-self:center">meals today</span></div>`;
+  }
+  if(q.key==="cannabis"){
+    const v=t.cannabis;
+    return `<div class="mini" onclick="event.stopPropagation()"><div class="seg warm">
+      <button class="${v==="no"?"on":""}" onclick="setCannabis('no')">None</button>
+      <button class="${v==="social"?"on":""}" onclick="setCannabis('social')">Social</button>
+      <button class="${v==="yes"?"on":""}" onclick="setCannabis('yes')">Yes</button>
+    </div><span class="small dim" style="align-self:center">no shame — just tracking</span></div>`;
+  }
+  return "";
+}
+
+function renderAttrs(){
+  const sc=attrScores();
+  el("attrs").innerHTML=ATTRS.map(a=>{
+    const v=Math.round((sc[a.key]||0)*100);
+    const lv=Math.max(1,Math.round((sc[a.key]||0)*10));
+    return `<div class="attr"><div class="em">${a.em}</div><div class="n">${a.name}</div>
+      <div class="bar"><i style="width:${v}%"></i></div><div class="lv">Lv ${lv}</div></div>`;
+  }).join("");
+}
+
+function renderInsights(){
+  const ins=insights();
+  if(!ins.length){
+    const need=Math.max(0,5-loggedDates().length);
+    el("insights").innerHTML=`<div class="small muted">Patterns unlock once there’s enough data${need?` — about ${need} more day${need>1?"s":""} of logging`:""}. Then this finds relationships like “your energy runs higher on cannabis-free nights,” always with honest uncertainty.</div>`;
+    return;
+  }
+  el("insights").innerHTML=ins.map(i=>`<div class="ins">${i.text}<span class="s">${i.sub}</span></div>`).join("");
+}
+
+function renderBadges(){
+  const dates=loggedDates();
+  const totalXp=dates.reduce((x,iso)=>x+xpFor(state.days[iso],dayNumber(iso)),0);
+  const cfree=dates.filter(iso=>state.days[iso].tasks.cannabis==="no").length;
+  const natural=dates.filter(iso=>state.days[iso].tasks.wake.natural).length;
+  const st=streak();
+  const b=[];
+  if(totalXp>=100)b.push("🌱 Momentum started");
+  if(dates.length>=1)b.push("✅ First check-in");
+  if(st>=3)b.push("🔁 3-day rhythm");
+  if(st>=7)b.push("🗓️ 7-day streak");
+  if(cfree>=7)b.push("🧠 7 clear mornings");
+  if(natural>=5)b.push("🌤️ 5 natural wakes");
+  if(totalXp>=500)b.push("⭐ 500 XP");
+  if(totalXp>=1500)b.push("🔥 1500 XP");
+  el("badges").innerHTML=b.length?b.map(x=>`<span class="badge">${x}</span>`).join(""):`<span class="small muted">Your first milestone is one tap away.</span>`;
+}
+
+function renderHistory(){
+  const dates=loggedDates().slice().reverse();
+  el("history").innerHTML=dates.map(iso=>{
+    const d=state.days[iso],n=dayNumber(iso);
+    const c=d.tasks.cannabis;const cl=c==="no"?"–":c==="social"?"soc":c==="yes"?"yes":"·";
+    return `<tr><td>${n}</td><td>${d.tasks.wake.time||(d.tasks.wake.natural?"nat":"·")}</td>
+      <td>${d.energy||"·"}</td><td>${d.sleepq||"·"}</td><td>${d.tasks.meals||"·"}</td>
+      <td>${cl}</td><td>${xpFor(d,n)}</td></tr>`;
+  }).join("")||`<tr><td colspan="7" class="muted small">No days logged yet.</td></tr>`;
+}
+
+const BASELINE_FIELDS=[
+  {k:"weight",label:"Weight",unit:"kg"},{k:"muscle",label:"Muscle SMM",unit:"kg"},
+  {k:"fat",label:"Body fat",unit:"%"},{k:"bmr",label:"BMR",unit:"kcal"},
+  {k:"phase",label:"Phase angle",unit:"°"},{k:"score",label:"Device score",unit:""},
+];
+function renderBaseline(){
+  const b=state.baseline||{};
+  const has=BASELINE_FIELDS.some(f=>b[f.k]);
+  if(!has){el("baselineBox").innerHTML=`<div class="small muted">Add your body-composition scan in ⚙︎ Settings to keep a private baseline here. It stays on your device — it’s never part of the app’s code.</div>`;return;}
+  const cells=BASELINE_FIELDS.filter(f=>b[f.k]).map(f=>`<div class="b"><b>${b[f.k]}${f.unit?`<small>${f.unit}</small>`:""}</b><span>${f.label}</span></div>`).join("");
+  el("baselineBox").innerHTML=`<div class="baseline">${cells}</div>
+    <p class="small muted" style="margin-top:12px">${b.date?("Recorded "+b.date+". "):""}A reference point, not a verdict — scan labels aren’t medical diagnoses and impedance readings drift with hydration and food. You’re lean and training hard: the aim is to <b>fuel training and build useful lean mass</b>, not chase a lower number. Trends under the same conditions beat any single scan.</p>`;
+}
+function render(){
+  const iso=todayISO(), n=dayNumber(iso), d=today();
+  el("dayline").textContent=`Day ${Math.max(1,n)} of 30`;
+  el("target").textContent=wakeTarget(n);
+
+  // momentum
+  const series=momentumSeries();
+  const dates=loggedDates();
+  const last=dates.length?series[dates[dates.length-1]]:null;
+  const m=last?last.after:100;
+  el("momentum").textContent=m;
+  const circ=351.86;
+  el("ringfill").style.strokeDashoffset=circ-(circ*Math.min(m,160)/160);
+  const md=el("mdelta");
+  if(last&&touched(state.days[dates[dates.length-1]])&&dates[dates.length-1]===iso){
+    const ch=last.change;
+    md.textContent=(ch>0?"▲ +":ch<0?"▼ ":"— ")+(ch===0?"held":Math.abs(ch));
+    md.className="delta "+(ch>0?"up":ch<0?"down":"flat");
+  }else{md.textContent="ready";md.className="delta flat";}
+
+  // stats
+  el("todayXp").textContent=xpFor(d,n);
+  const totalXp=dates.reduce((x,i)=>x+xpFor(state.days[i],dayNumber(i)),0);
+  el("level").textContent=Math.floor(totalXp/500)+1;
+  el("streak").textContent=streak();
+
+  // message
+  const msg=messageFor();
+  el("message").innerHTML=msg.text;
+  const pick=el("pick");
+  if(msg.showPick){pick.style.display="flex";pick.innerHTML=PICKS.map(p=>`<span class="chip" onclick="doPick(this,'${p}')">${p}</span>`).join("");}
+  else pick.style.display="none";
+
+  // feel inputs
+  el("energy").value=d.energy||0;el("energyVal").textContent=d.energy||"–";
+  el("sleepq").value=d.sleepq||0;el("sleepVal").textContent=d.sleepq||"–";
+  el("note").value=d.note||"";
+
+  renderMission();renderRhythm();renderAttrs();renderInsights();renderWeek();renderBadges();renderHistory();renderBaseline();
+}
+
+/* ---------------- interactions ---------------- */
+function haptic(){if(navigator.vibrate)navigator.vibrate(8);}
+function tapQuest(key,ev){
+  const d=today(),t=d.tasks;
+  if(key==="wake"||key==="meals"||key==="cannabis"){ // these use inline controls
+    if(key==="wake"){t.wake.natural=!t.wake.natural;}
+    else if(key==="meals"){t.meals=Number(t.meals)>=3?0:3;}
+    else if(key==="cannabis"){t.cannabis=t.cannabis==="no"?"":"no";}
+  }else{t[key]=!t[key];}
+  haptic();commit();
+}
+function setWake(f,v){today().tasks.wake[f]=v;commit();}
+function toggleNatural(){const w=today().tasks.wake;w.natural=!w.natural;haptic();commit();}
+function bumpMeals(n){const t=today().tasks;t.meals=Math.max(0,Math.min(6,(Number(t.meals)||0)+n));haptic();commit();}
+function setCannabis(v){const t=today().tasks;t.cannabis=t.cannabis===v?"":v;haptic();commit();}
+function onFeel(){const d=today();d.energy=Number(el("energy").value);d.sleepq=Number(el("sleepq").value);d.note=el("note").value;
+  el("energyVal").textContent=d.energy||"–";el("sleepVal").textContent=d.sleepq||"–";commit(true);}
+function doPick(node,label){document.querySelectorAll("#pick .chip").forEach(c=>c.classList.remove("sel"));node.classList.add("sel");
+  toast("Good pick: "+label+". That’s the whole job right now.");haptic();}
+
+let saveT=null;
+function commit(light){
+  persist();
+  if(light){ // debounce heavy re-render for sliders/typing
+    clearTimeout(saveT);saveT=setTimeout(render,250);
+  }else{render();toastSaved();}
+}
+let toastT=null;
+function toast(msg){const t=el("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2200);}
+function toastSaved(){toast("Saved · momentum "+el("momentum").textContent);}
+
+/* ---------------- settings + data ---------------- */
+function openSheet(){el("setName").value=state.name||"";el("setStart").value=state.start;el("setProtein").value=state.protein||"";
+  el("setBed").value=state.bedtime;el("setWater").value=state.waterTarget;el("setCutoff").value=state.eatCutoffHrs;
+  const b=state.baseline||{};el("setBw").value=b.weight||"";el("setBm").value=b.muscle||"";el("setBf").value=b.fat||"";el("setBbmr").value=b.bmr||"";el("setBphase").value=b.phase||"";el("setBscore").value=b.score||"";el("setBdate").value=b.date||"";
+  el("sheet").classList.add("open");}
+function closeSheet(){el("sheet").classList.remove("open");}
+function saveSettings(){
+  state.name=el("setName").value.trim();
+  const s=el("setStart").value;if(s)state.start=s;
+  state.protein=el("setProtein").value.trim()||"100–130 g";
+  const bd=el("setBed").value;if(bd)state.bedtime=bd;
+  const wv=parseInt(el("setWater").value,10);if(wv>0)state.waterTarget=wv;
+  const cf=parseFloat(el("setCutoff").value);if(!isNaN(cf))state.eatCutoffHrs=cf;
+  state.baseline={weight:el("setBw").value.trim(),muscle:el("setBm").value.trim(),fat:el("setBf").value.trim(),bmr:el("setBbmr").value.trim(),phase:el("setBphase").value.trim(),score:el("setBscore").value.trim(),date:el("setBdate").value.trim()};
+  persist();scheduleInApp();closeSheet();render();toast("Settings saved");
+}
+function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="peak-performance-data.json";a.click();toast("Exported");}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const s=JSON.parse(r.result);if(!s.days)throw 0;state=s;persist();render();closeSheet();toast("Imported");}catch(_){toast("That file didn’t look right");}};r.readAsText(f);}
+function shareApp(){const url=location.href.split("?")[0];
+  const txt="Peak Performance — a 30-day momentum tracker. Add it to your home screen: "+url;
+  if(navigator.share){navigator.share({title:"Peak Performance",text:"Join me on a 30-day reset",url}).catch(()=>{});}
+  else{navigator.clipboard?.writeText(txt);toast("Link copied to share");}}
+function resetData(){if(confirm("Reset everything on this device? This can’t be undone.")){localStorage.removeItem(KEY);state=load();render();closeSheet();toast("Reset");}}
+
+/* ---------------- daily rhythm ---------------- */
+function minToStr(m){m=Math.round(((m%1440)+1440)%1440);let h=Math.floor(m/60),mm=m%60;const ap=h<12?"am":"pm";let hh=h%12;if(hh===0)hh=12;return hh+":"+String(mm).padStart(2,"0")+" "+ap;}
+function nowMin(){const d=new Date();return d.getHours()*60+d.getMinutes();}
+function untilStr(delta){if(delta<=0)return "now";const h=Math.floor(delta/60),m=Math.round(delta%60);return "in "+(h?h+"h ":"")+m+"m";}
+function notifOK(){return ("Notification" in window)&&Notification.permission==="granted";}
+
+function rhythm(){
+  const n=dayNumber(todayISO()), d=today();
+  const wake=(toMin(d.tasks.wake.time)!=null?toMin(d.tasks.wake.time):toMin(wakeTarget(n)));
+  let bedM=toMin(state.bedtime); if(bedM==null)bedM=1380;
+  if(bedM<=wake)bedM+=1440; // bedtime after midnight
+  const cutoff=bedM-Math.round((state.eatCutoffHrs||3)*60);
+  const wind=bedM-75;
+  const evts=[];
+  evts.push({m:wake+30,em:"🌅",type:"light",t:"Get outdoor light",w:"Your strongest circadian anchor"});
+  const bfast=wake+45;
+  const dinner=Math.min(cutoff-45,bedM-180);
+  const lunch=Math.round((bfast+dinner)/2);
+  evts.push({m:bfast,em:"🍳",type:"meal",t:"Breakfast",w:"Protein-forward first meal"});
+  evts.push({m:lunch,em:"🥗",type:"meal",t:"Lunch",w:"Aim ~30–40g protein"});
+  evts.push({m:dinner,em:"🍽️",type:"meal",t:"Dinner",w:"Last big meal, before the kitchen closes"});
+  const wt=Math.max(1,state.waterTarget||8);
+  const hStart=wake+60,hEnd=cutoff;
+  for(let i=0;i<wt;i++){const m=Math.round(hStart+(hEnd-hStart)*(wt>1?i/(wt-1):0));evts.push({m,em:"💧",type:"water",t:"Water",w:"Glass "+(i+1)+" of "+wt});}
+  evts.push({m:cutoff,em:"🚫",type:"cutoff",t:"Kitchen closes",w:"Stop big meals ~"+(state.eatCutoffHrs||3)+"h before bed"});
+  evts.push({m:wind,em:"🛁",type:"wind",t:"Start wind-down",w:"Dim lights, screens down"});
+  evts.push({m:bedM,em:"😴",type:"bed",t:"Target bedtime",w:"Aim for consistent lights-out"});
+  evts.sort((a,b)=>a.m-b.m);
+  return {evts,wake,bedM,cutoff};
+}
+function nowRefFor(R){let now=nowMin();if(now<R.wake-120)now+=1440;return now;}
+
+function renderRhythm(){
+  const d=today(),R=rhythm(),nowRef=nowRefFor(R);
+  const next=R.evts.find(e=>e.m>nowRef);
+  el("upnext").innerHTML=next
+    ? `<div class="un"><div class="em">${next.em}</div><div><div class="t">${next.t} · ${minToStr(next.m)}</div><div class="w">${next.w} · ${untilStr(next.m-nowRef)}</div></div></div>`
+    : `<div class="un"><div class="em">✅</div><div><div class="t">That’s today’s rhythm done</div><div class="w">Rest up — tomorrow is generated from today.</div></div></div>`;
+  el("waterCount").textContent=d.water||0;el("waterGoal").textContent=state.waterTarget;
+  el("wfill").style.width=Math.min(100,((d.water||0)/(state.waterTarget||8))*100)+"%";
+  el("timeline").innerHTML=R.evts.map(e=>{
+    const cls=e.m<=nowRef?"past":(e===next?"next":"");
+    return `<div class="ev ${cls}"><span class="tm">${minToStr(e.m)}</span><span>${e.em}</span><span>${e.t}</span></div>`;
+  }).join("");
+  el("lastMeal").value=d.lastMeal||"";
+  const kh=el("kitchenHint"),lm=toMin(d.lastMeal),cutoffStr=minToStr(R.cutoff);
+  if(lm!=null){let lmRef=lm;if(lmRef<R.wake)lmRef+=1440;const ok=lmRef<=R.cutoff;
+    kh.textContent=ok?`✓ before kitchen close (${cutoffStr})`:`· after ${cutoffStr} — no shame, just noted`;
+    kh.style.color=ok?"var(--good)":"var(--soft)";
+  }else{kh.textContent="· kitchen closes "+cutoffStr;kh.style.color="";}
+  el("remindBtn").textContent=(state.remindersOn&&notifOK())?"🔔 In-app reminders on":"🔔 Turn on in-app reminders";
+}
+function addWater(n){const d=today();d.water=Math.max(0,(d.water||0)+n);haptic();commit();}
+function setLastMeal(v){today().lastMeal=v;commit();}
+
+/* in-app notifications (fire only while Peak is open — honest limitation) */
+let inAppTimers=[];
+function scheduleInApp(){
+  inAppTimers.forEach(clearTimeout);inAppTimers=[];
+  if(!(state.remindersOn&&notifOK()))return;
+  const R=rhythm(),nowRef=nowRefFor(R);
+  R.evts.filter(e=>e.m>nowRef&&e.type!=="bed").forEach(e=>{
+    const ms=(e.m-nowRef)*60000;
+    if(ms>1000&&ms<16*3600*1000){
+      inAppTimers.push(setTimeout(()=>{try{new Notification("Peak · "+e.t,{body:e.w,icon:"icons/icon-192.png",badge:"icons/favicon-64.png",tag:"peak-"+e.type+"-"+e.m});}catch(_){}},ms));
+    }
+  });
+}
+function toggleReminders(){
+  if(!("Notification" in window)){toast("This browser can’t show notifications — use Add to calendar");return;}
+  if(state.remindersOn){state.remindersOn=false;persist();scheduleInApp();render();toast("In-app reminders off");return;}
+  Notification.requestPermission().then(p=>{
+    if(p==="granted"){state.remindersOn=true;persist();scheduleInApp();render();toast("Reminders on — while Peak is open");}
+    else toast("Notifications blocked — use Add to calendar instead");
+  });
+}
+
+/* calendar export — reliable, fires when the app is closed */
+function pad2(x){return String(x).padStart(2,"0");}
+function icsDT(baseISO,m){const dt=new Date(baseISO+"T00:00:00");dt.setMinutes(m);
+  return dt.getFullYear()+pad2(dt.getMonth()+1)+pad2(dt.getDate())+"T"+pad2(dt.getHours())+pad2(dt.getMinutes())+"00";}
+function icsEsc(s){return String(s).replace(/([,;\\])/g,"\\$1").replace(/\n/g,"\\n");}
+function downloadICS(){
+  const R=rhythm(),base=todayISO(),now=new Date();
+  const stamp=now.getUTCFullYear()+pad2(now.getUTCMonth()+1)+pad2(now.getUTCDate())+"T"+pad2(now.getUTCHours())+pad2(now.getUTCMinutes())+pad2(now.getUTCSeconds())+"Z";
+  const L=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Peak Performance//EN","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Peak reminders"];
+  let i=0;
+  for(const e of R.evts){if(e.type==="bed")continue;i++;
+    L.push("BEGIN:VEVENT","UID:peak-"+e.type+"-"+i+"-"+base+"@peak.local","DTSTAMP:"+stamp,
+      "DTSTART:"+icsDT(base,e.m),"DURATION:PT10M","RRULE:FREQ=DAILY",
+      "SUMMARY:"+icsEsc(e.em+" "+e.t),"DESCRIPTION:"+icsEsc(e.w+" · Peak Performance"),
+      "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsEsc(e.t),"TRIGGER:PT0M","END:VALARM","END:VEVENT");
+  }
+  L.push("END:VCALENDAR");
+  const blob=new Blob([L.join("\r\n")],{type:"text/calendar"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="peak-reminders.ics";a.click();
+  toast("Calendar file ready — open it to add daily reminders");
+}
+
+/* ---------------- weekly review ---------------- */
+const FOCUS={wake:"anchor one consistent wake time and get light early",light:"step outside within 30 min of waking",meals:"add one more real meal on your lighter days",protein:"put ~30–40g protein in each main meal",train:"bank three sessions — recovery walks count",cannabis:"keep noticing how cannabis-free nights feel",wind:"start the same wind-down a little earlier"};
+function weekReview(){
+  const dates=loggedDates();if(!dates.length)return null;
+  const last7=dates.slice(-7).map(iso=>({iso,d:state.days[iso],n:dayNumber(iso)}));
+  const series=momentumSeries();
+  const first=last7[0].iso,lastI=last7[last7.length-1].iso;
+  const mBefore=series[first]?series[first].before:100,mAfter=series[lastI]?series[lastI].after:100;
+  const energy=avg(last7.map(x=>x.d.energy).filter(v=>v>0));
+  const sleep=avg(last7.map(x=>x.d.sleepq).filter(v=>v>0));
+  const rate=fn=>last7.length?Math.round(100*last7.filter(fn).length/last7.length):0;
+  const rates=QUESTS.map(q=>({q,r:rate(x=>questDone(x.d,q,x.n))})).sort((a,b)=>a.r-b.r);
+  const cfree=last7.filter(x=>x.d.tasks.cannabis==="no").length;
+  const waterAvg=avg(last7.map(x=>x.d.water||0));
+  return {count:last7.length,mBefore,mAfter,energy,sleep,weakest:rates[0],strongest:rates[rates.length-1],cfree,waterAvg};
+}
+function renderWeek(){
+  const w=weekReview();
+  if(!w||w.count<2){el("week").innerHTML=`<div class="small muted">Your weekly review builds after a couple of logged days — momentum trend, what’s working, and one gentle focus for next week.</div>`;return;}
+  const md=w.mAfter-w.mBefore;
+  el("week").innerHTML=`
+    <div class="wk">
+      <div class="c"><b>${w.mAfter}</b><span>MOMENTUM ${md>=0?"▲ +"+md:"▼ "+Math.abs(md)}</span></div>
+      <div class="c"><b>${w.count}/7</b><span>DAYS LOGGED</span></div>
+      <div class="c"><b>${w.energy?w.energy.toFixed(1):"–"}</b><span>AVG ENERGY</span></div>
+      <div class="c"><b>${w.sleep?w.sleep.toFixed(1):"–"}</b><span>AVG SLEEP</span></div>
+      <div class="c"><b>${w.cfree}</b><span>CLEAR NIGHTS</span></div>
+      <div class="c"><b>${w.waterAvg?w.waterAvg.toFixed(0):"–"}</b><span>AVG GLASSES</span></div>
+    </div>
+    <div class="focus"><b>Working well:</b> ${w.strongest.q.icon} ${w.strongest.q.label.toLowerCase()} (${w.strongest.r}%).<br><b>One focus next week:</b> ${FOCUS[w.weakest.q.key]}.</div>`;
+}
+
+/* ---------------- boot ---------------- */
+render();
+if(state.remindersOn)scheduleInApp();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+</script>
+</body>
+</html>

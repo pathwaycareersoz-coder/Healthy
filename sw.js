@@ -1,6 +1,8 @@
 // Pain Driven Man — service worker for offline "add to home screen" use.
 // Bump CACHE when you ship changes so phones pick up the new version.
-const CACHE = "pdm-v3";
+const CACHE = "pdm-v4";
+// Must match PUSH_ENDPOINT in index.html (your Cloudflare Worker URL). Empty = push off.
+const PUSH_ENDPOINT = "";
 const ASSETS = [
   "./",
   "./index.html",
@@ -42,4 +44,37 @@ self.addEventListener("fetch", (e) => {
     return;
   }
   e.respondWith(caches.match(req).then((r) => r || fetch(req)));
+});
+
+// Web Push: pushes are payload-less; fetch the due reminder text from the Worker.
+self.addEventListener("push", (e) => {
+  e.waitUntil((async () => {
+    let title = "Pain Driven Man", body = "Time for your next check-in.";
+    try {
+      if (e.data) { const d = e.data.json(); title = d.title || title; body = d.body || body; }
+      else if (PUSH_ENDPOINT) {
+        const sub = await self.registration.pushManager.getSubscription();
+        if (sub) {
+          const r = await fetch(PUSH_ENDPOINT.replace(/\/$/, "") + "/due", {
+            method: "POST", headers: { "content-type": "application/json" },
+            body: JSON.stringify({ endpoint: sub.endpoint }),
+          });
+          if (r.ok) { const j = await r.json(); title = j.title || title; body = j.body || body; }
+        }
+      }
+    } catch (_) {}
+    await self.registration.showNotification(title, {
+      body, icon: "icons/icon-192.png", badge: "icons/favicon-64.png",
+      tag: "pdm-push", renotify: true, data: { url: "./index.html" },
+    });
+  })());
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  e.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const c of all) { if ("focus" in c) { try { await c.focus(); return; } catch (_) {} } }
+    if (self.clients.openWindow) await self.clients.openWindow("./index.html");
+  })());
 });

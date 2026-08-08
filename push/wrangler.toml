@@ -1,0 +1,20 @@
+# Optional: for deploying the push Worker via the CLI (`wrangler deploy`).
+# If you prefer no CLI, follow push/SETUP.md to paste worker.js in the dashboard.
+name = "pdm-push"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# Bind a KV namespace named SUBS (create it first: `wrangler kv namespace create SUBS`)
+[[kv_namespaces]]
+binding = "SUBS"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# Fire every 5 minutes
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Public values (safe to commit). Set the PRIVATE key as a secret instead:
+#   wrangler secret put VAPID_PRIVATE_KEY
+[vars]
+VAPID_PUBLIC_KEY = "BGh4usUdWqtdCv0iTzsFI0EkpJQPV6n5me-bTyoYvw72Xj_F0ePOfamqggpSSQL3WplR8zb_cXQPVcMRfB3I2vI"
+VAPID_SUBJECT = "mailto:you@example.com"

@@ -250,11 +250,12 @@ details[open] summary .caret{transform:rotate(180deg)}
       <label>Last big meal today <span class="dim" id="kitchenHint"></span></label>
       <input type="time" id="lastMeal" onchange="setLastMeal(this.value)">
     </div>
-    <div class="btnrow" style="margin-top:6px">
-      <button class="btn ghost" id="remindBtn" onclick="toggleReminders()">🔔 Turn on in-app reminders</button>
-      <button class="btn ghost" onclick="downloadICS()">📅 Add to phone calendar</button>
+    <button class="btn block" id="pushBtn" onclick="toggleBackgroundPush()" style="margin-top:6px;display:none">🔔 Turn on background notifications</button>
+    <div class="btnrow" style="margin-top:8px">
+      <button class="btn ghost" id="remindBtn" onclick="toggleReminders()">🔔 In-app reminders</button>
+      <button class="btn ghost" onclick="downloadICS()">📅 Add to calendar</button>
     </div>
-    <div class="small dim" style="margin-top:8px" id="reminderNote">Calendar reminders fire even when the app is closed — the reliable option on iPhone. In-app reminders only fire while the app is open.</div>
+    <div class="small dim" style="margin-top:8px" id="reminderNote">In-app reminders only fire while the app is open. Calendar reminders fire even when it's closed.</div>
   </div>
 
   <!-- FEEL / METRICS -->
@@ -389,6 +390,10 @@ details[open] summary .caret{transform:rotate(180deg)}
 <script>
 /* ---------------- model ---------------- */
 const KEY="peakPerformanceV2";
+// Background push config. PUSH_ENDPOINT is your Cloudflare Worker URL (see push/SETUP.md).
+// Leave PUSH_ENDPOINT empty until the Worker is deployed — the feature stays hidden until then.
+const PUSH_ENDPOINT=""; // e.g. "https://pdm-push.you.workers.dev"
+const VAPID_PUBLIC_KEY="BGh4usUdWqtdCv0iTzsFI0EkpJQPV6n5me-bTyoYvw72Xj_F0ePOfamqggpSSQL3WplR8zb_cXQPVcMRfB3I2vI";
 const MAX_XP=105;
 const WAKE_TARGETS=["08:00","07:45","07:30","07:15","07:00","06:45","06:30","06:30","06:15","06:15","06:00"];
 const QUESTS=[
@@ -420,6 +425,7 @@ function load(){
   if(s.waterTarget==null)s.waterTarget=8;
   if(s.eatCutoffHrs==null)s.eatCutoffHrs=3;
   if(s.remindersOn==null)s.remindersOn=false;
+  if(s.pushOn==null)s.pushOn=false;
   if(!s.baseline)s.baseline={weight:"",muscle:"",fat:"",bmr:"",phase:"",score:"",date:""};
   for(const iso in s.days){const d=s.days[iso];if(d.water==null)d.water=0;if(d.lastMeal==null)d.lastMeal="";}
   return s;
@@ -765,7 +771,7 @@ function saveSettings(){
   const wv=parseInt(el("setWater").value,10);if(wv>0)state.waterTarget=wv;
   const cf=parseFloat(el("setCutoff").value);if(!isNaN(cf))state.eatCutoffHrs=cf;
   state.baseline={weight:el("setBw").value.trim(),muscle:el("setBm").value.trim(),fat:el("setBf").value.trim(),bmr:el("setBbmr").value.trim(),phase:el("setBphase").value.trim(),score:el("setBscore").value.trim(),date:el("setBdate").value.trim()};
-  persist();scheduleInApp();closeSheet();render();toast("Settings saved");
+  persist();scheduleInApp();syncPushSchedule();closeSheet();render();toast("Settings saved");
 }
 function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="peak-performance-data.json";a.click();toast("Exported");}
@@ -827,7 +833,11 @@ function renderRhythm(){
     kh.textContent=ok?`✓ before kitchen close (${cutoffStr})`:`· after ${cutoffStr} — no shame, just noted`;
     kh.style.color=ok?"var(--good)":"var(--soft)";
   }else{kh.textContent="· kitchen closes "+cutoffStr;kh.style.color="";}
-  el("remindBtn").textContent=(state.remindersOn&&notifOK())?"🔔 In-app reminders on":"🔔 Turn on in-app reminders";
+  el("remindBtn").textContent=(state.remindersOn&&notifOK())?"🔔 In-app: on":"🔔 In-app reminders";
+  const pb=el("pushBtn");
+  if(pushConfigured()){pb.style.display="";pb.textContent=state.pushOn?"🔔 Background notifications: on":"🔔 Turn on background notifications";
+    el("reminderNote").textContent=state.pushOn?"You’ll get notifications even when the app is closed. Tap one to jump back in.":"Background notifications fire even when the app is closed — tap to open the app. (iPhone: add to Home Screen first.)";
+  }else{pb.style.display="none";}
 }
 function addWater(n){const d=today();d.water=Math.max(0,(d.water||0)+n);haptic();commit();}
 function setLastMeal(v){today().lastMeal=v;commit();}
@@ -852,6 +862,41 @@ function toggleReminders(){
     if(p==="granted"){state.remindersOn=true;persist();scheduleInApp();render();toast("Reminders on — while the app is open");}
     else toast("Notifications blocked — use Add to calendar instead");
   });
+}
+
+/* background push — fires when the app is closed, via the Cloudflare Worker */
+function pushConfigured(){return !!PUSH_ENDPOINT && !!VAPID_PUBLIC_KEY && ("serviceWorker" in navigator) && ("PushManager" in window);}
+function min2hhmm(m){m=((Math.round(m)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");}
+function urlB64ToU8(s){const pad="=".repeat((4-s.length%4)%4);const b=(s+pad).replace(/-/g,"+").replace(/_/g,"/");const raw=atob(b);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));}
+function reminderPayload(){return rhythm().evts.filter(e=>e.type!=="bed").map(e=>({hhmm:min2hhmm(e.m),label:"Pain Driven Man · "+e.t,body:e.w}));}
+function pushBody(sub){return JSON.stringify({subscription:sub.toJSON(),tz:Intl.DateTimeFormat().resolvedOptions().timeZone,name:state.name||"",reminders:reminderPayload()});}
+const pushURL=p=>PUSH_ENDPOINT.replace(/\/$/,"")+p;
+async function toggleBackgroundPush(){
+  if(!pushConfigured()){toast("Background push isn’t set up yet — see push/SETUP.md");return;}
+  if(state.pushOn){return disableBackgroundPush();}
+  try{
+    if(!("Notification" in window)){toast("This browser can’t show notifications");return;}
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){toast("Allow notifications to turn this on");return;}
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToU8(VAPID_PUBLIC_KEY)});
+    const r=await fetch(pushURL("/subscribe"),{method:"POST",headers:{"content-type":"application/json"},body:pushBody(sub)});
+    if(!r.ok)throw new Error("server "+r.status);
+    state.pushOn=true;persist();render();toast("Background notifications on 🎉");
+  }catch(e){toast("Couldn’t enable: "+(e.message||e));}
+}
+async function disableBackgroundPush(){
+  try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();
+    if(sub){await fetch(pushURL("/unsubscribe"),{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({endpoint:sub.endpoint})});await sub.unsubscribe();}
+  }catch(_){}
+  state.pushOn=false;persist();render();toast("Background notifications off");
+}
+async function syncPushSchedule(){
+  if(!(state.pushOn&&pushConfigured()))return;
+  try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();
+    if(sub)await fetch(pushURL("/subscribe"),{method:"POST",headers:{"content-type":"application/json"},body:pushBody(sub)});
+  }catch(_){}
 }
 
 /* calendar export — reliable, fires when the app is closed */
@@ -911,7 +956,9 @@ function renderWeek(){
 /* ---------------- boot ---------------- */
 render();
 if(state.remindersOn)scheduleInApp();
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+if("serviceWorker" in navigator){window.addEventListener("load",()=>{
+  navigator.serviceWorker.register("sw.js").then(()=>{ if(state.pushOn)syncPushSchedule(); }).catch(()=>{});
+});}
 </script>
 </body>
 </html>

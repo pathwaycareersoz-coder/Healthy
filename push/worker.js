@@ -19,6 +19,7 @@
  */
 
 const WINDOW = 5; // minutes; must match the cron interval
+// deploy trigger: 1
 
 export default {
   async fetch(request, env) {

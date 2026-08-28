@@ -245,6 +245,16 @@ details[open] summary .caret{transform:rotate(180deg)}
         <button class="btn" onclick="addWater(1)">＋ Glass</button>
       </div>
     </div>
+    <div class="water">
+      <div>
+        <div class="small muted">Push-ups 💪</div>
+        <b id="pushupCount">0</b><span class="muted"> today</span>
+      </div>
+      <div class="btnrow">
+        <button class="btn ghost" onclick="addPushups(-10)">–10</button>
+        <button class="btn" onclick="addPushups(10)">＋ 10</button>
+      </div>
+    </div>
     <div id="timeline" class="tl"></div>
     <div class="field" style="margin-top:14px">
       <label>Last big meal today <span class="dim" id="kitchenHint"></span></label>
@@ -352,6 +362,10 @@ details[open] summary .caret{transform:rotate(180deg)}
       <label>Stop eating this many hours before bed</label>
       <input type="number" id="setCutoff" min="0" max="6" step="0.5">
     </div>
+    <div class="field">
+      <label>Push-up nudge before each water reminder (minutes, 0 = off)</label>
+      <input type="number" id="setPushOffset" min="0" max="30" step="1">
+    </div>
     <details style="margin-top:6px">
       <summary>🧪 Baseline scan <span class="dim" style="font-weight:400">(private, stays on this device)</span></summary>
       <div style="margin-top:10px">
@@ -371,6 +385,11 @@ details[open] summary .caret{transform:rotate(180deg)}
       <b>iPhone (Safari):</b> Share → <b>Add to Home Screen</b>.<br>
       <b>Android (Chrome):</b> ⋮ menu → <b>Install app / Add to Home screen</b>.
     </p>
+    <h2 style="margin-top:18px">Cycle</h2>
+    <div class="btnrow">
+      <button class="btn ghost" onclick="newCycle()">Start a new 30-day cycle</button>
+    </div>
+    <div class="small dim" style="margin-top:6px">Resets to Day 1 and clears daily logs + momentum. Keeps your settings and baseline.</div>
     <h2 style="margin-top:18px">Your data</h2>
     <div class="btnrow">
       <button class="btn ghost" onclick="exportData()">Export JSON</button>
@@ -414,7 +433,7 @@ const ATTRS=[
 ];
 
 const todayISO=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
-function blankDay(){return{tasks:{wake:{time:"",natural:false},light:false,meals:0,protein:false,train:false,cannabis:"",wind:false},water:0,lastMeal:"",energy:0,sleepq:0,note:""};}
+function blankDay(){return{tasks:{wake:{time:"",natural:false},light:false,meals:0,protein:false,train:false,cannabis:"",wind:false},water:0,pushups:0,lastMeal:"",energy:0,sleepq:0,note:""};}
 
 let state=load();
 function load(){
@@ -426,8 +445,9 @@ function load(){
   if(s.eatCutoffHrs==null)s.eatCutoffHrs=3;
   if(s.remindersOn==null)s.remindersOn=false;
   if(s.pushOn==null)s.pushOn=false;
+  if(s.pushupOffset==null)s.pushupOffset=7;
   if(!s.baseline)s.baseline={weight:"",muscle:"",fat:"",bmr:"",phase:"",score:"",date:""};
-  for(const iso in s.days){const d=s.days[iso];if(d.water==null)d.water=0;if(d.lastMeal==null)d.lastMeal="";}
+  for(const iso in s.days){const d=s.days[iso];if(d.water==null)d.water=0;if(d.pushups==null)d.pushups=0;if(d.lastMeal==null)d.lastMeal="";}
   return s;
 }
 function persist(){localStorage.setItem(KEY,JSON.stringify(state));}
@@ -759,7 +779,7 @@ function toastSaved(){toast("Saved · momentum "+el("momentum").textContent);}
 
 /* ---------------- settings + data ---------------- */
 function openSheet(){el("setName").value=state.name||"";el("setStart").value=state.start;el("setProtein").value=state.protein||"";
-  el("setBed").value=state.bedtime;el("setWater").value=state.waterTarget;el("setCutoff").value=state.eatCutoffHrs;
+  el("setBed").value=state.bedtime;el("setWater").value=state.waterTarget;el("setCutoff").value=state.eatCutoffHrs;el("setPushOffset").value=state.pushupOffset;
   const b=state.baseline||{};el("setBw").value=b.weight||"";el("setBm").value=b.muscle||"";el("setBf").value=b.fat||"";el("setBbmr").value=b.bmr||"";el("setBphase").value=b.phase||"";el("setBscore").value=b.score||"";el("setBdate").value=b.date||"";
   el("sheet").classList.add("open");}
 function closeSheet(){el("sheet").classList.remove("open");}
@@ -770,6 +790,7 @@ function saveSettings(){
   const bd=el("setBed").value;if(bd)state.bedtime=bd;
   const wv=parseInt(el("setWater").value,10);if(wv>0)state.waterTarget=wv;
   const cf=parseFloat(el("setCutoff").value);if(!isNaN(cf))state.eatCutoffHrs=cf;
+  const po=parseInt(el("setPushOffset").value,10);if(!isNaN(po))state.pushupOffset=Math.max(0,po);
   state.baseline={weight:el("setBw").value.trim(),muscle:el("setBm").value.trim(),fat:el("setBf").value.trim(),bmr:el("setBbmr").value.trim(),phase:el("setBphase").value.trim(),score:el("setBscore").value.trim(),date:el("setBdate").value.trim()};
   persist();scheduleInApp();syncPushSchedule();closeSheet();render();toast("Settings saved");
 }
@@ -781,6 +802,7 @@ function shareApp(){const url=location.href.split("?")[0];
   const txt="Pain Driven Man — a 30-day momentum tracker. Add it to your home screen: "+url;
   if(navigator.share){navigator.share({title:"Pain Driven Man",text:"Join me on a 30-day reset",url}).catch(()=>{});}
   else{navigator.clipboard?.writeText(txt);toast("Link copied to share");}}
+function newCycle(){if(confirm("Start a fresh 30-day cycle? Clears daily logs + momentum, keeps your settings and baseline.")){state.start=todayISO();state.days={};persist();syncPushSchedule();closeSheet();render();toast("New cycle — Day 1 🎯");}}
 function resetData(){if(confirm("Reset everything on this device? This can’t be undone.")){localStorage.removeItem(KEY);state=load();render();closeSheet();toast("Reset");}}
 
 /* ---------------- daily rhythm ---------------- */
@@ -806,7 +828,12 @@ function rhythm(){
   evts.push({m:dinner,em:"🍽️",type:"meal",t:"Dinner",w:"Last big meal, before the kitchen closes"});
   const wt=Math.max(1,state.waterTarget||8);
   const hStart=wake+60,hEnd=cutoff;
-  for(let i=0;i<wt;i++){const m=Math.round(hStart+(hEnd-hStart)*(wt>1?i/(wt-1):0));evts.push({m,em:"💧",type:"water",t:"Water",w:"Glass "+(i+1)+" of "+wt});}
+  const poff=Math.max(0,state.pushupOffset||0);
+  for(let i=0;i<wt;i++){
+    const m=Math.round(hStart+(hEnd-hStart)*(wt>1?i/(wt-1):0));
+    if(poff>0)evts.push({m:Math.max(wake+1,m-poff),em:"💪",type:"pushup",t:"10 push-ups",w:"Drop and give 10 — hydration’s next"});
+    evts.push({m,em:"💧",type:"water",t:"Water",w:"Glass "+(i+1)+" of "+wt});
+  }
   evts.push({m:cutoff,em:"🚫",type:"cutoff",t:"Kitchen closes",w:"Stop big meals ~"+(state.eatCutoffHrs||3)+"h before bed"});
   evts.push({m:wind,em:"🛁",type:"wind",t:"Start wind-down",w:"Dim lights, screens down"});
   evts.push({m:bedM,em:"😴",type:"bed",t:"Target bedtime",w:"Aim for consistent lights-out"});
@@ -823,6 +850,7 @@ function renderRhythm(){
     : `<div class="un"><div class="em">✅</div><div><div class="t">That’s today’s rhythm done</div><div class="w">Rest up — tomorrow is generated from today.</div></div></div>`;
   el("waterCount").textContent=d.water||0;el("waterGoal").textContent=state.waterTarget;
   el("wfill").style.width=Math.min(100,((d.water||0)/(state.waterTarget||8))*100)+"%";
+  el("pushupCount").textContent=d.pushups||0;
   el("timeline").innerHTML=R.evts.map(e=>{
     const cls=e.m<=nowRef?"past":(e===next?"next":"");
     return `<div class="ev ${cls}"><span class="tm">${minToStr(e.m)}</span><span>${e.em}</span><span>${e.t}</span></div>`;
@@ -840,6 +868,7 @@ function renderRhythm(){
   }else{pb.style.display="none";}
 }
 function addWater(n){const d=today();d.water=Math.max(0,(d.water||0)+n);haptic();commit();}
+function addPushups(n){const d=today();d.pushups=Math.max(0,(d.pushups||0)+n);haptic();commit();}
 function setLastMeal(v){today().lastMeal=v;commit();}
 
 /* in-app notifications (fire only while the app is open — honest limitation) */

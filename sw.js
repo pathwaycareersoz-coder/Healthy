@@ -1,6 +1,6 @@
 // Pain Driven Man — service worker for offline "add to home screen" use.
 // Bump CACHE when you ship changes so phones pick up the new version.
-const CACHE = "pdm-v5";
+const CACHE = "pdm-v6";
 // Must match PUSH_ENDPOINT in index.html (your Cloudflare Worker URL). Empty = push off.
 const PUSH_ENDPOINT = "https://pdm-push.pathwaycareersoz.workers.dev";
 const ASSETS = [
